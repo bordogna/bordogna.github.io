@@ -3,76 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bordogna Family Sourdough Order Form</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        input, select, button {
-            padding: 10px;
-            margin: 10px;
-        }
-    </style>
+    <title>Bordogna Bakery Order Form</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <h1>Bordogna Family Farms Sourdough Order Form</h1>
+    <h1>Bordogna Bakery Order Form</h1>
+    
+    <!-- Order Form -->
     <form id="orderForm">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br>
-
-        <label for="sourdough">Sourdough Loaf:</label>
-        <select id="sourdough" name="sourdough">
-            <option value="0">0 Loaves</option>
-            <option value="1">1 Loaf</option>
-            <option value="2">2 Loaves</option>
-            <option value="3">3 Loaves</option>
-        </select><br>
-
-        <label for="cinnamon">Cinnamon Sugar Sourdough Loaf:</label>
-        <select id="cinnamon" name="cinnamon">
-            <option value="0">0 Loaves</option>
-            <option value="1">1 Loaf</option>
-            <option value="2">2 Loaves</option>
-            <option value="3">3 Loaves</option>
-        </select><br>
-
-        <button type="submit">Submit Order</button>
+        <input type="text" name="name" placeholder="Your Name" required>
+        <select name="sourdough_loaves">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+        <select name="cinnamon_loaves">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+        <button type="button" onclick="saveOrder()">Place Order</button>
     </form>
 
+    <!-- Admin Orders Section (hidden by default) -->
+    <section id="admin-orders" style="display: none;">
+        <h2>Admin Orders View</h2>
+        <ul id="orders-list"></ul>
+        <button onclick="clearOrders()">Clear Orders</button>
+    </section>
+
     <script>
-        document.getElementById('orderForm').onsubmit = async function(event) {
-            event.preventDefault();
+        // Your home IP address (replace with your actual home WAN IP)
+        const homeIP = "129.222.28.60";
 
-            const name = document.getElementById('name').value;
-            const sourdoughOrder = document.getElementById('sourdough').value;
-            const cinnamonOrder = document.getElementById('cinnamon').value;
+        // Fetch IP and show admin view if it matches
+        fetch("https://api.ipify.org?format=json")
+            .then(response => response.json())
+            .then(data => {
+                if (data.ip === homeIP) {
+                    document.getElementById("admin-orders").style.display = "block";
+                    displayOrders();
+                }
+            })
+            .catch(error => console.error("Error fetching IP:", error));
 
-            const orderData = {
-                name,
-                sourdoughOrder: parseInt(sourdoughOrder),
-                cinnamonOrder: parseInt(cinnamonOrder),
+        // Function to save order to localStorage
+        function saveOrder() {
+            const name = document.querySelector('input[name="name"]').value;
+            const sourdough_loaves = document.querySelector('select[name="sourdough_loaves"]').value;
+            const cinnamon_loaves = document.querySelector('select[name="cinnamon_loaves"]').value;
+
+            // Create order object
+            const order = {
+                name: name,
+                sourdough_loaves: sourdough_loaves,
+                cinnamon_loaves: cinnamon_loaves,
+                timestamp: new Date().toLocaleString()
             };
 
-            try {
-                const response = await fetch('/submit-order', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(orderData),
-                });
+            // Retrieve existing orders from localStorage or initialize empty array
+            const orders = JSON.parse(localStorage.getItem("bakeryOrders")) || [];
+            orders.push(order);
 
-                if (response.ok) {
-                    alert('Order submitted successfully!');
-                    document.getElementById('orderForm').reset();
-                } else {
-                    alert('Error submitting order. Please try again.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error submitting order. Please try again.');
-            }
-        };
+            // Save updated orders array back to localStorage
+            localStorage.setItem("bakeryOrders", JSON.stringify(orders));
+
+            alert("Order placed successfully!");
+            document.getElementById("orderForm").reset(); // Reset form
+        }
+
+        // Function to display orders in the admin section
+        function displayOrders() {
+            const ordersList = document.getElementById("orders-list");
+            ordersList.innerHTML = ""; // Clear existing list
+
+            // Retrieve orders from localStorage
+            const orders = JSON.parse(localStorage.getItem("bakeryOrders")) || [];
+            orders.forEach(order => {
+                const listItem = document.createElement("li");
+                listItem.textContent = `Name: ${order.name}, Sourdough Loaves: ${order.sourdough_loaves}, Whole Cinnamon Loaves: ${order.cinnamon_loaves}, Ordered At: ${order.timestamp}`;
+                ordersList.appendChild(listItem);
+            });
+        }
+
+        // Function to clear orders from localStorage
+        function clearOrders() {
+            localStorage.removeItem("bakeryOrders");
+            displayOrders(); // Refresh the displayed list
+            alert("All orders have been cleared.");
+        }
     </script>
 </body>
 </html>
