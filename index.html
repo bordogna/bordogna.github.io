@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bordogna Family Sourdough Order Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bordogna Family Farms Sourdough Order Form</h1>
+    <form id="orderForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br>
+
+        <label for="sourdough">Sourdough Loaf:</label>
+        <select id="sourdough" name="sourdough">
+            <option value="0">0 Loaves</option>
+            <option value="1">1 Loaf</option>
+            <option value="2">2 Loaves</option>
+            <option value="3">3 Loaves</option>
+        </select><br>
+
+        <label for="cinnamon">Cinnamon Sugar Sourdough Loaf:</label>
+        <select id="cinnamon" name="cinnamon">
+            <option value="0">0 Loaves</option>
+            <option value="1">1 Loaf</option>
+            <option value="2">2 Loaves</option>
+            <option value="3">3 Loaves</option>
+        </select><br>
+
+        <button type="submit">Submit Order</button>
+    </form>
+
+    <script>
+        document.getElementById('orderForm').onsubmit = async function(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const sourdoughOrder = document.getElementById('sourdough').value;
+            const cinnamonOrder = document.getElementById('cinnamon').value;
+
+            const orderData = {
+                name,
+                sourdoughOrder: parseInt(sourdoughOrder),
+                cinnamonOrder: parseInt(cinnamonOrder),
+            };
+
+            try {
+                const response = await fetch('/submit-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData),
+                });
+
+                if (response.ok) {
+                    alert('Order submitted successfully!');
+                    document.getElementById('orderForm').reset();
+                } else {
+                    alert('Error submitting order. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error submitting order. Please try again.');
+            }
+        };
+    </script>
+</body>
+</html>
